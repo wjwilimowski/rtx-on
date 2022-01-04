@@ -16,9 +16,9 @@ float bottom = -1 / ratio;
 
 var spheres = new Sphere[]
 {
-    new Sphere(-.2f, 0, -1, .7f),
-    new Sphere(.1f, -.3f, 0, .1f),
-    new Sphere(-.3f, 0, 0, .15f),
+    new Sphere(-.2f, 0, -1, .7f, Color.Red),
+    new Sphere(.1f, -.3f, 0, .1f, Color.Green),
+    new Sphere(-.3f, 0, 0, .15f, Color.Blue),
 };
 
 var camera = new Vector3(0, 0, 1.0f);
@@ -32,11 +32,18 @@ foreach (var (y, iy) in Utils.FloatRange(top, bottom, height).Enumerate())
         var pixel = new Vector3(x, y, 0);
         var direction = pixel.Minus(camera).Unit();
 
-        var intersectsSphere0 = spheres[0].Intersect(direction, camera) ? 255 : 0;
-        var intersectsSphere1 = spheres[1].Intersect(direction, camera) ? 255 : 0;
-        var intersectsSphere2 = spheres[2].Intersect(direction, camera) ? 255 : 0;
-
-        bitmap.SetPixel(ix, iy, Color.FromArgb(intersectsSphere0, intersectsSphere1, intersectsSphere2));
+        Color c = Color.Black;
+        
+        float minDistance = float.MaxValue;
+        foreach (var sphere in spheres)
+        {
+            if (sphere.TryIntersect(direction, camera, out var distance) && distance < minDistance)
+            {
+                minDistance = distance;
+                c = sphere.Color;
+            }
+        }
+        bitmap.SetPixel(ix, iy, c);
     }
 }
 
@@ -99,20 +106,23 @@ readonly struct Sphere
 {
     public readonly Vector3 Center;
     public readonly float Radius;
+    public readonly Color Color;
 
-    public Sphere(float x, float y, float z, float r)
+    public Sphere(float x, float y, float z, float r, Color color)
     {
         Center = new Vector3(x, y, z);
         Radius = r;
+        Color = color;
     }
 
-    public Sphere(Vector3 center, float r)
+    public Sphere(Vector3 center, float r, Color color)
     {
         Center = center;
         Radius = r;
+        Color = color;
     }
 
-    public bool Intersect(Vector3 rayDirection, Vector3 rayOrigin)
+    public bool TryIntersect(Vector3 rayDirection, Vector3 rayOrigin, out float distance)
     {
         var centerToOrigin = rayOrigin.Minus(Center);
         var centerToOriginNorm = centerToOrigin.Norm();
@@ -125,9 +135,13 @@ readonly struct Sphere
             var t2 = (-b - (float)Math.Sqrt(delta)) / 2;
 
             if (t1 > 0 && t2 > 0)
+            {
+                distance = Math.Min(t1, t2);
                 return true;
+            }
         }
 
+        distance = default;
         return false;
     }
 }
