@@ -14,15 +14,24 @@ float right = -1;
 float top = 1 / ratio;
 float bottom = -1 / ratio;
 
+
+var camera = new Vector3(0, 0, 3f);
+var light = new Light(new Vector3(5, 5, 5), Color.White);
+
+var sphere1 = new Sphere(-.2f, 0, -1, .7f, Color.Purple);
+var sphere2 = new Sphere(.1f, -.3f, 0, .1f, Color.Green);
+var sphere3 = new Sphere(-.3f, 0, 0, .15f, Color.Blue);
+
+var directionFromSphere1ToLight = light.Position.Minus(sphere1.Center).Normalize();
+
+var sphere4 = new Sphere(sphere1.Center.Plus(directionFromSphere1ToLight.Mul(1.4f)), .3f, Color.White);
 var spheres = new Sphere[]
 {
-    new Sphere(-.2f, 0, -1, .7f, Color.Purple),
-    new Sphere(.1f, -.3f, 0, .1f, Color.Green),
-    new Sphere(-.3f, 0, 0, .15f, Color.Blue),
+    sphere1,
+    sphere2,
+    sphere3,
+    sphere4
 };
-
-var camera = new Vector3(0, 0, 1.0f);
-var light = new Light(new Vector3(5, 5, 5), Color.White);
 
 var bitmap = new Bitmap(width, height);
 
@@ -30,7 +39,7 @@ foreach (var (y, iy) in Utils.FloatRange(top, bottom, height).Enumerate())
 {
     foreach (var (x, ix) in Utils.FloatRange(left, right, width).Enumerate())
     {
-        var pixel = new Vector3(x, y, 0);
+        var pixel = new Vector3(x, y, 1f);
         var direction = pixel.Minus(camera).Normalize();
 
         Color c = Color.Black;
