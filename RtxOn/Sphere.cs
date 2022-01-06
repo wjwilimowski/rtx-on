@@ -1,0 +1,45 @@
+﻿namespace RtxOn;
+
+readonly struct Sphere
+{
+    public readonly Vector3 Center;
+    public readonly float Radius;
+    public readonly BlinnPhong Color;
+
+    public Sphere(float x, float y, float z, float r, BlinnPhong color)
+    {
+        Center = new Vector3(x, y, z);
+        Radius = r;
+        Color = color;
+    }
+
+    public Sphere(Vector3 center, float r, BlinnPhong color)
+    {
+        Center = center;
+        Radius = r;
+        Color = color;
+    }
+
+    public bool TryIntersect(Vector3 rayDirection, Vector3 rayOrigin, out float distance)
+    {
+        var centerToOrigin = rayOrigin.Minus(Center);
+        var centerToOriginNorm = centerToOrigin.Norm();
+        var b = 2 * rayDirection.Dot(centerToOrigin);
+        var c = centerToOriginNorm * centerToOriginNorm - Radius * Radius;
+        var delta = b * b - 4 * c;
+        if (delta > 0)
+        {
+            var t1 = (-b + (float)Math.Sqrt(delta)) / 2;
+            var t2 = (-b - (float)Math.Sqrt(delta)) / 2;
+
+            if (t1 > 0 && t2 > 0)
+            {
+                distance = Math.Min(t1, t2);
+                return true;
+            }
+        }
+
+        distance = default;
+        return false;
+    }
+}
