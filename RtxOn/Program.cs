@@ -16,12 +16,13 @@ float bottom = -1 / ratio;
 
 var spheres = new Sphere[]
 {
-    new Sphere(-.2f, 0, -1, .7f, Color.Red),
+    new Sphere(-.2f, 0, -1, .7f, Color.Purple),
     new Sphere(.1f, -.3f, 0, .1f, Color.Green),
     new Sphere(-.3f, 0, 0, .15f, Color.Blue),
 };
 
 var camera = new Vector3(0, 0, 1.0f);
+var light = new Light(new Vector3(5, 5, 5), Color.White);
 
 var bitmap = new Bitmap(width, height);
 
@@ -30,75 +31,62 @@ foreach (var (y, iy) in Utils.FloatRange(top, bottom, height).Enumerate())
     foreach (var (x, ix) in Utils.FloatRange(left, right, width).Enumerate())
     {
         var pixel = new Vector3(x, y, 0);
-        var direction = pixel.Minus(camera).Unit();
+        var direction = pixel.Minus(camera).Normalize();
 
         Color c = Color.Black;
         
-        float minDistance = float.MaxValue;
-        foreach (var sphere in spheres)
+        if (TryFindNearestSphere(spheres, camera, direction, out Sphere sphere, out float distance))
         {
-            if (sphere.TryIntersect(direction, camera, out var distance) && distance < minDistance)
+            var rawIntersectionPoint = camera.Plus(direction.Mul(distance));
+            var surfaceNormal = rawIntersectionPoint.Minus(sphere.Center).Normalize();
+            var intersectionPoint = rawIntersectionPoint.Plus(surfaceNormal.Mul(0.00001f));
+            
+            var rayFromIntersectionToLight = light.Position.Minus(intersectionPoint);
+            var distanceToLight = rayFromIntersectionToLight.Norm();
+
+            var directionFromIntersectionToLight = rayFromIntersectionToLight.Normalize();
+            
+            var isShadowed = TryFindNearestSphere(spheres, intersectionPoint, directionFromIntersectionToLight, out _,
+                out float shadowingObjectDistance) && shadowingObjectDistance < distanceToLight;
+            if (!isShadowed)
             {
-                minDistance = distance;
                 c = sphere.Color;
             }
         }
+        
         bitmap.SetPixel(ix, iy, c);
     }
 }
 
-bitmap.Save("output.png");
-
-static class Utils
+bool TryFindNearestSphere(Sphere[] spheres, Vector3 camera, Vector3 ray, out Sphere nearestSphere, out float nearestDistance)
 {
-    public static IEnumerable<float> FloatRange(float min, float max, int count)
-    {
-        var step = (min - max) / count;
-        return Enumerable.Range(0, count).Select(i => i * step - min);
-    }
+    nearestDistance = float.MaxValue;
+    nearestSphere = default;
     
-    public static IEnumerable<(T item, int index)> Enumerate<T>(this IEnumerable<T> source)
+    foreach (var sphere in spheres)
     {
-        return source.Select((item, index) => (item, index));
+        if (sphere.TryIntersect(ray, camera, out var sphereDistance) && sphereDistance < nearestDistance)
+        {
+            nearestDistance = sphereDistance;
+            nearestSphere = sphere;
+        }
     }
+
+    
+    return nearestDistance < float.MaxValue;
 }
 
-readonly struct Vector3
+bitmap.Save("output.png");
+
+readonly struct Light
 {
-    public readonly float X;
-    public readonly float Y;
-    public readonly float Z;
+    public readonly Vector3 Position;
+    public readonly Color Color;
 
-    public Vector3(float x, float y, float z)
+    public Light(Vector3 position, Color color)
     {
-        X = x;
-        Y = y;
-        Z = z;
-    }
-
-    public Vector3 Unit()
-    {
-        return Div(Norm());
-    }
-
-    public float Norm()
-    {
-        return (float) Math.Sqrt(X * X + Y * Y + Z * Z);
-    }
-
-    public Vector3 Div(float div)
-    {
-        return new Vector3(X / div, Y / div, Z / div);
-    }
-
-    public Vector3 Minus(Vector3 other)
-    {
-        return new Vector3(X - other.X, Y - other.Y, Z - other.Z);
-    }
-
-    public float Dot(Vector3 other)
-    {
-        return X * other.X + Y * other.Y + Z * other.Z;
+        Position = position;
+        Color = color;
     }
 }
 
