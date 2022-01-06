@@ -1,12 +1,10 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Drawing;
+using RtxOn;
 
-var width = 640;
-var height = 400;
+var width = 1280;
+var height = 800;
 var ratio = (float)width / height;
 
 float left = 1;
@@ -15,55 +13,75 @@ float top = 1 / ratio;
 float bottom = -1 / ratio;
 
 
-var camera = new Vector3(0, 0, 3f);
-var light = new Light(new Vector3(5, 5, 5), Color.White);
+var camera = new Vector3(0, 0, 1f);
+var light = new Light(new Vector3(5, 5, 5), BlinnPhong.Bright);
 
-var sphere1 = new Sphere(-.2f, 0, -1, .7f, Color.Purple);
-var sphere2 = new Sphere(.1f, -.3f, 0, .1f, Color.Green);
-var sphere3 = new Sphere(-.3f, 0, 0, .15f, Color.Blue);
+var floorSphere = new Sphere(0, -9000f, 0, 9000f - .7f, BlinnPhong.Gray);
 
-var directionFromSphere1ToLight = light.Position.Minus(sphere1.Center).Normalize();
+var sphere1 = new Sphere(-.2f, 0, -1, .7f, BlinnPhong.Red);
+var sphere2 = new Sphere(.1f, -.3f, 0, .1f, BlinnPhong.Purple);
+var sphere3 = new Sphere(-.3f, 0, 0, .15f, BlinnPhong.Green);
 
-var sphere4 = new Sphere(sphere1.Center.Plus(directionFromSphere1ToLight.Mul(1.4f)), .3f, Color.White);
 var spheres = new Sphere[]
 {
+    floorSphere,
     sphere1,
     sphere2,
-    sphere3,
-    sphere4
+    sphere3
 };
+
+const int nReflections = 3;
 
 var bitmap = new Bitmap(width, height);
 
-foreach (var (y, iy) in Utils.FloatRange(top, bottom, height).Enumerate())
+foreach (var (y, iy) in Utils.FloatRange(top, bottom, height).Reverse().Enumerate())
 {
     foreach (var (x, ix) in Utils.FloatRange(left, right, width).Enumerate())
     {
-        var pixel = new Vector3(x, y, 1f);
+        var pixel = new Vector3(x, y, 0f);
         var direction = pixel.Minus(camera).Normalize();
 
-        Color c = Color.Black;
+        var origin = camera;
+        var reflection = 1f;
+        ObjColor illumination = ObjColor.Black;
         
-        if (TryFindNearestSphere(spheres, camera, direction, out Sphere sphere, out float distance))
+        for (int i = 0; i < nReflections; i++)
         {
-            var rawIntersectionPoint = camera.Plus(direction.Mul(distance));
-            var surfaceNormal = rawIntersectionPoint.Minus(sphere.Center).Normalize();
-            var intersectionPoint = rawIntersectionPoint.Plus(surfaceNormal.Mul(0.00001f));
+            if (!TryFindNearestSphere(spheres, origin, direction, out Sphere obj, out float distance))
+            {
+                break;
+            }
+            
+            var rawIntersectionPoint = origin + direction * distance;
+            var surfaceNormal = rawIntersectionPoint.Minus(obj.Center).Normalize();
+            const float epsilon = 0.000001f;
+            var intersectionPoint = rawIntersectionPoint + surfaceNormal * epsilon;
             
             var rayFromIntersectionToLight = light.Position.Minus(intersectionPoint);
-            var distanceToLight = rayFromIntersectionToLight.Norm();
+            var distanceFromIntersectionToLight = rayFromIntersectionToLight.Norm();
+            var intersectionToLight = rayFromIntersectionToLight / distanceFromIntersectionToLight;
 
-            var directionFromIntersectionToLight = rayFromIntersectionToLight.Normalize();
-            
-            var isShadowed = TryFindNearestSphere(spheres, intersectionPoint, directionFromIntersectionToLight, out _,
-                out float shadowingObjectDistance) && shadowingObjectDistance < distanceToLight;
-            if (!isShadowed)
+            if (TryFindNearestSphere(spheres, intersectionPoint, intersectionToLight, out _, out float d) &&
+                d < distanceFromIntersectionToLight)
             {
-                c = sphere.Color;
+                break;
             }
+
+            illumination += BlinnPhong.Illuminate(
+                obj.Color,
+                light.Color,
+                intersectionToLight,
+                surfaceNormal,
+                camera.Minus(intersectionPoint).Normalize());
+
+            reflection *= obj.Color.Reflection;
+            origin = intersectionPoint;
+            direction = direction.Reflected(surfaceNormal);
         }
-        
-        bitmap.SetPixel(ix, iy, c);
+
+        illumination = illumination.Clamp();
+                
+        bitmap.SetPixel(ix, iy, Color.FromArgb((int)(255 * illumination.R), (int)(255 * illumination.G), (int)(255 * illumination.B)));
     }
 }
 
@@ -90,29 +108,109 @@ bitmap.Save("output.png");
 readonly struct Light
 {
     public readonly Vector3 Position;
-    public readonly Color Color;
+    public readonly BlinnPhong Color;
 
-    public Light(Vector3 position, Color color)
+    public Light(Vector3 position, BlinnPhong color)
     {
         Position = position;
         Color = color;
     }
+    
+}
+
+readonly struct BlinnPhong
+{
+    public readonly ObjColor Ambient;
+    public readonly ObjColor Diffuse;
+    public readonly ObjColor Specular;
+    public readonly float Shininess;
+    public readonly float Reflection;
+    
+    public static ObjColor Illuminate(
+        BlinnPhong obj,
+        BlinnPhong light,
+        Vector3 intersectionToLight,
+        Vector3 objSurfaceNormal,
+        Vector3 intersectionToCamera)
+    {
+        var lv = intersectionToLight + intersectionToCamera;
+        var dotLvNormal = objSurfaceNormal.Dot(lv.Normalize());
+        var rawSpecularCoefficient = (float)Math.Pow(dotLvNormal, obj.Shininess / 4f);
+        var specularCoefficient = float.IsNaN(rawSpecularCoefficient) ? 0f : rawSpecularCoefficient;
+        
+        var color = obj.Ambient * light.Ambient +
+               obj.Diffuse * light.Diffuse * intersectionToLight.Dot(objSurfaceNormal) +
+               obj.Specular * light.Specular * specularCoefficient;
+
+        return color;
+    }
+
+    public BlinnPhong(ObjColor ambient, ObjColor diffuse, ObjColor specular, float shininess, float reflection)
+    {
+        Ambient = ambient;
+        Diffuse = diffuse;
+        Specular = specular;
+        Shininess = shininess;
+        Reflection = reflection;
+    }
+
+    public static BlinnPhong Bright => new(
+        ObjColor.White, 
+        ObjColor.White, 
+        ObjColor.White, 
+        100f,
+        .5f);
+    
+    public static BlinnPhong Red => new(
+        new ObjColor(.1f, 0, 0), 
+        ObjColor.Red, 
+        ObjColor.White, 
+        100f,
+        .5f);
+    
+    public static BlinnPhong Green => new(
+        new ObjColor(0f, .1f, 0), 
+        ObjColor.Green, 
+        ObjColor.White, 
+        100f,
+        .5f);
+    
+    public static BlinnPhong Blue => new(
+        new ObjColor(0f, 0f, .1f), 
+        ObjColor.Blue, 
+        ObjColor.White, 
+        100f,
+        .5f);
+    
+    public static BlinnPhong Gray => new(
+        new ObjColor(.1f, .1f, .1f), 
+        new ObjColor(.6f, .6f, .6f), 
+        ObjColor.White, 
+        100f,
+        .5f);
+    
+    public static BlinnPhong Purple => new(
+        new ObjColor(.1f, 0f, .1f), 
+        ObjColor.Purple, 
+        ObjColor.White, 
+        100f,
+        .5f);
 }
 
 readonly struct Sphere
 {
     public readonly Vector3 Center;
     public readonly float Radius;
-    public readonly Color Color;
+    public readonly BlinnPhong Color;
 
-    public Sphere(float x, float y, float z, float r, Color color)
+    public Sphere(float x, float y, float z, float r, BlinnPhong color)
     {
         Center = new Vector3(x, y, z);
         Radius = r;
         Color = color;
     }
 
-    public Sphere(Vector3 center, float r, Color color)
+    public Sphere(Vector3 center, float r, BlinnPhong color)
     {
         Center = center;
         Radius = r;
