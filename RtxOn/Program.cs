@@ -12,8 +12,11 @@ float right = -1;
 float top = 1 / ratio;
 float bottom = -1 / ratio;
 
-var camera = new Vector3(0, 0, 1f);
-var viewCamera = new ViewCamera(camera, left, right, top, bottom, width, height);
+var screenMid = new Vector3(0, 0, 0);
+var focalLength = 1f;
+var cameraDirection = new Vector3(0, 0, -1);
+var viewCamera = new ViewCamera(screenMid, cameraDirection, focalLength, left, right, top, bottom, width, height);
+var camera = viewCamera.Focal;
 
 var light = new Light(new Vector3(5, 5, 5), BlinnPhong.Bright);
 
@@ -104,16 +107,24 @@ bitmap.Save("output.png");
 
 readonly struct ViewCamera
 {
-    public readonly Vector3 Focal;/*
-    public readonly Vector3 ScreenMid;
-    public readonly Vector3 Direction;
-    public readonly float FocalLength;*/
+    public readonly Vector3 Focal;
     public readonly float Left;
     public readonly float Right;
     public readonly float Top;
     public readonly float Bottom;
     public readonly int WidthPx;
     public readonly int HeightPx;
+
+    public ViewCamera(Vector3 screenMid, Vector3 direction, float focalLength, float left, float right, float top, float bottom, int widthPx, int heightPx)
+    {
+        Focal = screenMid + direction * -focalLength;
+        Left = left;
+        Right = right;
+        Top = top;
+        Bottom = bottom;
+        WidthPx = widthPx;
+        HeightPx = heightPx;
+    }
 
     public ViewCamera(Vector3 focal, float left, float right, float top, float bottom, int widthPx, int heightPx)
     {
