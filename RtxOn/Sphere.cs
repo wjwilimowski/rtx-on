@@ -1,5 +1,23 @@
 ﻿namespace RtxOn;
 
+public static class Utils
+{
+    public static float Delta(float b, float c, out float t1, out float t2)
+    {
+        t1 = default;
+        t2 = default;
+        
+        var delta = b * b - 4 * c;
+        if (delta > 0)
+        {
+            t1 = (-b + (float)Math.Sqrt(delta)) / 2;
+            t2 = (-b - (float)Math.Sqrt(delta)) / 2;
+        }
+
+        return delta;
+    }
+}
+
 readonly struct Sphere
 {
     public readonly Vector3 Center;
@@ -26,17 +44,11 @@ readonly struct Sphere
         var centerToOriginNorm = centerToOrigin.Norm();
         var b = 2 * rayDirection.Dot(centerToOrigin);
         var c = centerToOriginNorm * centerToOriginNorm - Radius * Radius;
-        var delta = b * b - 4 * c;
-        if (delta > 0)
+        
+        if (Utils.Delta(b, c, out float t1, out float t2) > 0 && t1 > 0 && t2 > 0)
         {
-            var t1 = (-b + (float)Math.Sqrt(delta)) / 2;
-            var t2 = (-b - (float)Math.Sqrt(delta)) / 2;
-
-            if (t1 > 0 && t2 > 0)
-            {
-                distance = Math.Min(t1, t2);
-                return true;
-            }
+            distance = Math.Min(t1, t2);
+            return true;
         }
 
         distance = default;

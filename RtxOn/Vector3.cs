@@ -43,6 +43,11 @@ readonly struct Vector3
         return new Vector3(v.X * mul, v.Y * mul, v.Z * mul);
     }
 
+    public static Vector3 operator *(Vector3 a, Vector3 y)
+    {
+        return new Vector3(a.X * y.X, a.Y * y.Y, a.Z * y.Z);
+    }
+
     public Vector3 Minus(Vector3 other)
     {
         return new Vector3(X - other.X, Y - other.Y, Z - other.Z);

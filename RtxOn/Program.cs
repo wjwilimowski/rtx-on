@@ -3,8 +3,8 @@
 using System.Drawing;
 using RtxOn;
 
-var width = 1280;
-var height = 800;
+var width = 640;
+var height = 400;
 var ratio = (float)width / height;
 
 float left = 1;
@@ -15,7 +15,7 @@ float bottom = -1 / ratio;
 var screenMid = new Vector3(0, 0, 0);
 var focalLength = 1f;
 var cameraDirection = new Vector3(0, 0, -1);
-var viewCamera = new ViewCamera(screenMid, cameraDirection, focalLength, left, right, top, bottom, width, height);
+var viewCamera = new ViewCamera(screenMid, cameraDirection, focalLength, width, height);
 var camera = viewCamera.Focal;
 
 var light = new Light(new Vector3(5, 5, 5), BlinnPhong.Bright);
@@ -108,6 +108,8 @@ bitmap.Save("output.png");
 readonly struct ViewCamera
 {
     public readonly Vector3 Focal;
+    public readonly Vector3 ScreenMid;
+    public readonly Vector3 Direction;
     public readonly float Left;
     public readonly float Right;
     public readonly float Top;
@@ -115,24 +117,26 @@ readonly struct ViewCamera
     public readonly int WidthPx;
     public readonly int HeightPx;
 
-    public ViewCamera(Vector3 screenMid, Vector3 direction, float focalLength, float left, float right, float top, float bottom, int widthPx, int heightPx)
+    public ViewCamera(Vector3 screenMid, Vector3 direction, float focalLength, int widthPx, int heightPx)
     {
-        Focal = screenMid + direction * -focalLength;
-        Left = left;
-        Right = right;
-        Top = top;
-        Bottom = bottom;
-        WidthPx = widthPx;
-        HeightPx = heightPx;
-    }
+        var ratio = (float)widthPx / heightPx;
 
-    public ViewCamera(Vector3 focal, float left, float right, float top, float bottom, int widthPx, int heightPx)
-    {
-        Focal = focal;
-        Left = left;
-        Right = right;
-        Top = top;
-        Bottom = bottom;
+        /*
+         * TODO
+         *
+         * 1. create direction up in absolute space
+         * 2. find vector that defines screen top orientation (in the plane between up and direction, perpendicular to direction, highest dot product with up)
+         * 3. (optional) rotate the up vector around the direction by a roll angle
+         * 4. Find a way to generate pixels across the plane defined by screenMid, screenDirection and top orientation?
+         */
+        
+        Direction = direction;
+        Focal = screenMid + direction * -focalLength;
+        ScreenMid = screenMid;
+        Left = 1;
+        Right = -1;
+        Top = 1 / ratio;
+        Bottom = -1 / ratio;
         WidthPx = widthPx;
         HeightPx = heightPx;
     }
@@ -143,7 +147,7 @@ readonly struct ViewCamera
         {
             foreach (var (x, ix) in Utils.FloatRange(Left, Right, WidthPx).Enumerate())
             {
-                var pixel = new Vector3(x, y, 0f);
+                var pixel = ScreenMid + new Vector3(x, y, 0f);
                 var direction = pixel.Minus(Focal).Normalize();
 
                 yield return (direction, ix, iy);
