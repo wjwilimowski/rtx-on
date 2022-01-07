@@ -69,7 +69,7 @@ public readonly struct BlinnPhong
         new ObjColor(.6f, .6f, .6f), 
         ObjColor.White, 
         100f,
-        .5f);
+        .9f);
     
     public static BlinnPhong Purple => new(
         new ObjColor(.1f, 0f, .1f), 

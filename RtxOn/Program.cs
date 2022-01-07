@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+using System.Diagnostics;
 using System.Drawing;
 using RtxOn;
 
@@ -31,11 +32,29 @@ var scene = new Scene(viewCamera, spheres, light);
 
 const int nReflections = 6;
 
-var bitmap = new Bitmap(width, height);
+var renderer = new Renderer(nReflections, true);
 
-foreach (var renderedPixel in Rendering.RenderScene(scene, nReflections))
+
+
+using (var gif = AnimatedGif.AnimatedGif.Create("result.gif", 33))
 {
-    bitmap.SetPixel(renderedPixel.X, renderedPixel.Y, Color.FromArgb((int)(255 * renderedPixel.Color.R), (int)(255 * renderedPixel.Color.G), (int)(255 * renderedPixel.Color.B)));
-}
+    for (int i = 0; i < 100; i++)
+    {
+        viewCamera.SetPosition(screenMid + cameraDirection.Negative() * i * 0.2f);
+        
+        var stw = new Stopwatch();
+        stw.Start();
+        var rendered = renderer.RenderParallel(scene).ToList();
+        stw.Stop();
+        
+        var bitmap = new Bitmap(width, height);
+        foreach (var renderedPixel in rendered)
+        {
+            bitmap.SetPixel(renderedPixel.X, renderedPixel.Y, Color.FromArgb((int)(255 * renderedPixel.Color.R), (int)(255 * renderedPixel.Color.G), (int)(255 * renderedPixel.Color.B)));
+        }
+        
+        gif.AddFrame(bitmap);
 
-bitmap.Save("output.png");
+        Console.WriteLine($"Done in {stw.Elapsed}");
+    }
+}
