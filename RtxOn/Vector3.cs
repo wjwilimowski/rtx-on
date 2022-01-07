@@ -6,6 +6,11 @@ readonly struct Vector3
     public readonly float Y;
     public readonly float Z;
 
+    public override string ToString()
+    {
+        return $"{X}, {Y}, {Z}";
+    }
+
     public Vector3(float x, float y, float z)
     {
         X = x;
@@ -16,6 +21,14 @@ readonly struct Vector3
     public Vector3 Negative()
     {
         return new Vector3(-X, -Y, -Z);
+    }
+
+    public static Vector3 NormalToSurfaceFromPoint(Vector3 spanningA, Vector3 spanningB)
+    {
+        var v31 = spanningA.Negative();
+        var v12 = spanningB;
+
+        return v31.CrossProduct(v12);
     }
 
     public Vector3 Reflected(Vector3 axis)
@@ -46,6 +59,15 @@ readonly struct Vector3
     public static Vector3 operator *(Vector3 a, Vector3 y)
     {
         return new Vector3(a.X * y.X, a.Y * y.Y, a.Z * y.Z);
+    }
+
+    public Vector3 CrossProduct(Vector3 other)
+    {
+        return new Vector3(
+            Y * other.Z - Z * other.Y,
+            Z * other.X - X * other.Z,
+            X * other.Y - Y * other.X
+        );
     }
 
     public Vector3 Minus(Vector3 other)

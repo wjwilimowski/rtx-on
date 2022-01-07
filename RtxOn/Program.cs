@@ -5,16 +5,10 @@ using RtxOn;
 
 var width = 640;
 var height = 400;
-var ratio = (float)width / height;
-
-float left = 1;
-float right = -1;
-float top = 1 / ratio;
-float bottom = -1 / ratio;
 
 var screenMid = new Vector3(0, 0, 0);
 var focalLength = 1f;
-var cameraDirection = new Vector3(0, 0, -1);
+var cameraDirection = new Vector3(0, 0, -1).Normalize();
 var viewCamera = new ViewCamera(screenMid, cameraDirection, focalLength, width, height);
 var camera = viewCamera.Focal;
 
@@ -109,45 +103,35 @@ readonly struct ViewCamera
 {
     public readonly Vector3 Focal;
     public readonly Vector3 ScreenMid;
-    public readonly Vector3 Direction;
-    public readonly float Left;
-    public readonly float Right;
-    public readonly float Top;
-    public readonly float Bottom;
+    public readonly Vector3 TowardsScreenSide;
+    public readonly Vector3 TowardsScreenEdge;
     public readonly int WidthPx;
     public readonly int HeightPx;
+    public readonly float Ratio;
 
     public ViewCamera(Vector3 screenMid, Vector3 direction, float focalLength, int widthPx, int heightPx)
     {
-        var ratio = (float)widthPx / heightPx;
-
-        /*
-         * TODO
-         *
-         * 1. create direction up in absolute space
-         * 2. find vector that defines screen top orientation (in the plane between up and direction, perpendicular to direction, highest dot product with up)
-         * 3. (optional) rotate the up vector around the direction by a roll angle
-         * 4. Find a way to generate pixels across the plane defined by screenMid, screenDirection and top orientation?
-         */
+        Ratio = (float)widthPx / heightPx;
         
-        Direction = direction;
+        var dirUp = new Vector3(0, 1, 0);
+
+        TowardsScreenSide = Vector3.NormalToSurfaceFromPoint(direction, dirUp).Normalize();
+        TowardsScreenEdge = Vector3.NormalToSurfaceFromPoint(TowardsScreenSide, direction).Normalize();
+
         Focal = screenMid + direction * -focalLength;
         ScreenMid = screenMid;
-        Left = 1;
-        Right = -1;
-        Top = 1 / ratio;
-        Bottom = -1 / ratio;
+        
         WidthPx = widthPx;
         HeightPx = heightPx;
     }
 
     public IEnumerable<(Vector3 direction, int ix, int iy)> Pixels()
     {
-        foreach (var (y, iy) in Utils.FloatRange(Top, Bottom, HeightPx).Reverse().Enumerate())
+        foreach (var (y, iy) in Utils.FloatRange(-1 / Ratio, 1 / Ratio, HeightPx).Enumerate())
         {
-            foreach (var (x, ix) in Utils.FloatRange(Left, Right, WidthPx).Enumerate())
+            foreach (var (x, ix) in Utils.FloatRange(-1, 1, WidthPx).Enumerate())
             {
-                var pixel = ScreenMid + new Vector3(x, y, 0f);
+                var pixel = ScreenMid + TowardsScreenEdge * y + TowardsScreenSide * x;
                 var direction = pixel.Minus(Focal).Normalize();
 
                 yield return (direction, ix, iy);
