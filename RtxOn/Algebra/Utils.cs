@@ -1,4 +1,4 @@
-﻿namespace RtxOn;
+﻿namespace RtxOn.Algebra;
 
 static class Utils
 {

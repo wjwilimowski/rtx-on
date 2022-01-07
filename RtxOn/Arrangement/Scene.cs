@@ -1,4 +1,8 @@
-﻿namespace RtxOn;
+﻿using RtxOn.Algebra;
+using RtxOn.Materials;
+using RtxOn.Viewport;
+
+namespace RtxOn.Arrangement;
 
 public class Scene
 {

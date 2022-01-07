@@ -1,4 +1,4 @@
-﻿namespace RtxOn;
+﻿namespace RtxOn.Materials;
 
 public readonly struct ObjColor
 {

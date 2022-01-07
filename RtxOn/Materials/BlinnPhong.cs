@@ -1,4 +1,6 @@
-﻿namespace RtxOn;
+﻿using RtxOn.Algebra;
+
+namespace RtxOn.Materials;
 
 public readonly struct BlinnPhong
 {

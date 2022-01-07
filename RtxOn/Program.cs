@@ -3,7 +3,11 @@
 using System.Diagnostics;
 using System.Drawing;
 using RtxOn;
-
+using RtxOn.Algebra;
+using RtxOn.Arrangement;
+using RtxOn.Materials;
+using RtxOn.Rendering;
+using RtxOn.Viewport;
 
 
 var light = new Light(new Vector3(5, 5, 5), BlinnPhong.Bright);

@@ -1,4 +1,4 @@
-﻿namespace RtxOn;
+﻿namespace RtxOn.Algebra;
 
 public readonly struct Vector3
 {

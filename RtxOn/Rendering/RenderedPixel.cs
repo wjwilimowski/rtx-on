@@ -1,4 +1,6 @@
-﻿namespace RtxOn;
+﻿using RtxOn.Materials;
+
+namespace RtxOn.Rendering;
 
 public readonly struct RenderedPixel
 {

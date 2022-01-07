@@ -1,6 +1,9 @@
 ﻿using System.Collections.Concurrent;
+using RtxOn.Algebra;
+using RtxOn.Arrangement;
+using RtxOn.Materials;
 
-namespace RtxOn;
+namespace RtxOn.Rendering;
 
 public class Renderer
 {
