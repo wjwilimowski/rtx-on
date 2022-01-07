@@ -16,7 +16,7 @@ public class Renderer
     
     public IEnumerable<RenderedPixel> Render(Scene scene)
     {
-        foreach ((Vector3 pixelDirection, int ix, int iy) in scene.ViewCamera.Pixels())
+        foreach ((Vector3 pixelDirection, int ix, int iy) in scene.View.Pixels())
         {
             yield return RenderPixel(scene, pixelDirection, ix, iy);
         }
@@ -25,7 +25,7 @@ public class Renderer
     public IEnumerable<RenderedPixel> RenderParallel(Scene scene)
     {
         var result = new ConcurrentBag<RenderedPixel>();
-        Parallel.ForEach(scene.ViewCamera.Pixels(), cameraPixel =>
+        Parallel.ForEach(scene.View.Pixels(), cameraPixel =>
         {
             var pixel = RenderPixel(scene, cameraPixel.direction, cameraPixel.ix, cameraPixel.iy);
 
@@ -37,7 +37,7 @@ public class Renderer
 
     private RenderedPixel RenderPixel(Scene scene, Vector3 direction, int ix, int iy)
     {
-        var origin = scene.ViewCamera.FocalPoint;
+        var origin = scene.View.Camera.FocalPoint;
         var reflection = 1f;
         ObjColor illumination = ObjColor.Black;
 
@@ -72,7 +72,7 @@ public class Renderer
                 scene.Light.Color,
                 intersectionToLight,
                 surfaceNormal,
-                scene.ViewCamera.FocalPoint.Minus(intersectionPoint).Normalize()) * reflection;
+                scene.View.Camera.FocalPoint.Minus(intersectionPoint).Normalize()) * reflection;
 
             reflection *= obj.Color.Reflection;
             origin = intersectionPoint;

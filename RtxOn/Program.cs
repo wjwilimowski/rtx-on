@@ -4,13 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using RtxOn;
 
-var width = 640;
-var height = 400;
 
-var screenMid = new Vector3(0, 0, 0);
-var focalLength = 1f;
-var cameraDirection = new Vector3(0, 0, -1).Normalize();
-var viewCamera = new ViewCamera(screenMid, cameraDirection, focalLength, width, height);
 
 var light = new Light(new Vector3(5, 5, 5), BlinnPhong.Bright);
 
@@ -28,19 +22,29 @@ var spheres = new Sphere[]
     sphere3
 };
 
-var scene = new Scene(viewCamera, spheres, light);
+var center = (sphere1.Center + sphere2.Center + sphere3.Center) / 3f;
+
+var initialScreenMid = center + new Vector3(0, 0, 2f);
+var focalLength = 1f;
+var initialCameraDirection = (center - initialScreenMid).Normalize();
+var camera = new Camera(initialScreenMid, initialCameraDirection, focalLength);
+
+var width = 640;
+var height = 400;
+var view = new View(camera, width, height);
+
+var scene = new Scene(view, spheres, light);
 
 const int nReflections = 6;
 
 var renderer = new Renderer(nReflections, true);
 
-
-
 using (var gif = AnimatedGif.AnimatedGif.Create("result.gif", 33))
 {
-    for (int i = 0; i < 100; i++)
+    for (int i = 0; i < 30; i++)
     {
-        viewCamera.SetPosition(screenMid + cameraDirection.Negative() * i * 0.2f);
+        view.Camera.SetPosition(initialScreenMid + initialCameraDirection.Negative() * i * 0.1f + new Vector3(0, i * 0.1f, 0));
+        view.Camera.LookAt(center);
         
         var stw = new Stopwatch();
         stw.Start();
