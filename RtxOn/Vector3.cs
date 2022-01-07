@@ -1,6 +1,6 @@
 ﻿namespace RtxOn;
 
-readonly struct Vector3
+public readonly struct Vector3
 {
     public readonly float X;
     public readonly float Y;

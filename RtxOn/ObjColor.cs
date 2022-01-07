@@ -1,6 +1,6 @@
 ﻿namespace RtxOn;
 
-readonly struct ObjColor
+public readonly struct ObjColor
 {
     public readonly float R;
     public readonly float G;

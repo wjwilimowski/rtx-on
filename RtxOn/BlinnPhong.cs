@@ -1,6 +1,6 @@
 ﻿namespace RtxOn;
 
-readonly struct BlinnPhong
+public readonly struct BlinnPhong
 {
     public readonly ObjColor Ambient;
     public readonly ObjColor Diffuse;

@@ -1,6 +1,6 @@
 ﻿namespace RtxOn;
 
-readonly struct Light
+public readonly struct Light
 {
     public readonly Vector3 Position;
     public readonly BlinnPhong Color;
