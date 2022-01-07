@@ -4,7 +4,7 @@ namespace RtxOn;
 
 public class Renderer
 {
-    const float Epsilon = 0.000001f;
+    const float Epsilon = 0.00001f;
 
     private readonly int _nReflections;
     private readonly bool _enableAmbientLight;

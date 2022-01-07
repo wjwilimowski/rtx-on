@@ -17,6 +17,18 @@ public readonly struct Vector3
         Y = y;
         Z = z;
     }
+    
+    public Vector3 RotateAround(Vector3 axis, float theta)
+    {
+        var parallel = axis * Dot(axis) / axis.Dot(axis);
+        var perpendicular = this - parallel;
+
+        var w = axis.CrossProduct(perpendicular);
+
+        return parallel +
+               perpendicular * (float)Math.Cos(theta * 2 * Math.PI) +
+               w.Normalize() * perpendicular.Norm() * (float)Math.Sin(theta * 2 * Math.PI);
+    }
 
     public Vector3 Negative()
     {
