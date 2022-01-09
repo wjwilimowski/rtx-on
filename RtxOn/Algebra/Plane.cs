@@ -22,11 +22,11 @@ public class Plane : IVisible
         
         var denominator = rayDirection.Dot(_normal);
         if (denominator == 0f)
-            return false; // the ray is parallel to the plane
+            return false; // the ray is parallel to the plane or contained within the plane
 
         var nominator = (_position - rayOrigin).Dot(_normal);
         distance = nominator / denominator;
-        if (distance < 0)
+        if (distance <= 0)
             return false; // the plane is in the opposite direction
 
         return true;
