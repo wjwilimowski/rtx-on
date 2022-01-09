@@ -53,6 +53,12 @@ public readonly struct Vector3
         return this / Norm();
     }
 
+    public Vector3 Normalize(out float norm)
+    {
+        norm = Norm();
+        return this / norm;
+    }
+
     public float Norm()
     {
         return (float) Math.Sqrt(X * X + Y * Y + Z * Z);

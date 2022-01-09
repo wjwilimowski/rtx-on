@@ -1,6 +1,4 @@
-﻿using RtxOn.Algebra;
-
-namespace RtxOn.Materials;
+﻿namespace RtxOn.Materials;
 
 public readonly struct BlinnPhong
 {
@@ -9,25 +7,6 @@ public readonly struct BlinnPhong
     public readonly Color Specular;
     public readonly float Shininess;
     public readonly float Reflection;
-    
-    public static Color Illuminate(
-        BlinnPhong obj,
-        BlinnPhong light,
-        Vector3 intersectionToLight,
-        Vector3 objSurfaceNormal,
-        Vector3 intersectionToCamera)
-    {
-        var lv = intersectionToLight + intersectionToCamera;
-        var dotLvNormal = objSurfaceNormal.Dot(lv.Normalize());
-        var rawSpecularCoefficient = (float)Math.Pow(dotLvNormal, obj.Shininess / 4f);
-        var specularCoefficient = float.IsNaN(rawSpecularCoefficient) ? 0f : rawSpecularCoefficient;
-        
-        var color = obj.Ambient * light.Ambient +
-                    obj.Diffuse * light.Diffuse * intersectionToLight.Dot(objSurfaceNormal) +
-                    obj.Specular * light.Specular * specularCoefficient;
-
-        return color;
-    }
 
     public BlinnPhong(Color ambient, Color diffuse, Color specular, float shininess, float reflection)
     {

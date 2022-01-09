@@ -41,9 +41,9 @@ public class Renderer
         return result.ToArray();
     }
 
-    private RenderedPixel RenderPixel(Scene scene, Vector3 focalPoint, Vector3 direction, int ix, int iy)
+    private RenderedPixel RenderPixel(Scene scene, Vector3 eye, Vector3 direction, int ix, int iy)
     {
-        var origin = focalPoint;
+        var origin = eye;
         var reflection = 1f;
         Color illumination = Color.Black;
 
@@ -55,40 +55,56 @@ public class Renderer
             }
 
             var rawIntersectionPoint = origin + direction * distance;
-            var surfaceNormal = obj.GetCollisionNormal(rawIntersectionPoint);
-            var intersectionPoint = rawIntersectionPoint + surfaceNormal * Epsilon;
+            var normal = obj.GetCollisionNormal(rawIntersectionPoint);
+            var intersection = rawIntersectionPoint + normal * Epsilon;
 
-            var rayFromIntersectionToLight = scene.Light.Position.Minus(intersectionPoint);
-            var distanceFromIntersectionToLight = rayFromIntersectionToLight.Norm();
-            var intersectionToLight = rayFromIntersectionToLight / distanceFromIntersectionToLight;
+            var light = scene.Light;
 
-            if (TryRangeNearestVisible(scene.Visibles, intersectionPoint, intersectionToLight, out float d) &&
-                d < distanceFromIntersectionToLight)
+            var (illuminate, isShadowed) = Illuminate(light, scene, eye, obj, intersection, normal);
+            illumination += illuminate * reflection;
+
+            if (isShadowed)
             {
-                if (_enableAmbientLight)
-                {
-                    illumination += obj.Color.Ambient * reflection;
-                }
-
                 break;
             }
 
-            illumination += BlinnPhong.Illuminate(
-                obj.Color,
-                scene.Light.Color,
-                intersectionToLight,
-                surfaceNormal,
-                focalPoint.Minus(intersectionPoint).Normalize()) * reflection;
 
             reflection *= obj.Color.Reflection;
-            origin = intersectionPoint;
-            direction = direction.Reflected(surfaceNormal);
+            origin = intersection;
+            direction = direction.Reflected(normal);
         }
 
         illumination = illumination.Clamp();
 
         var pixel = new RenderedPixel(ix, iy, illumination);
         return pixel;
+    }
+
+    private (Color illuminate, bool isShadowed) Illuminate(
+        Light light,
+        Scene scene,
+        Vector3 focalPoint,
+        IVisible obj,
+        Vector3 intersectionPoint,
+        Vector3 surfaceNormal)
+    {
+        
+        var rayFromIntersectionToLight = light.Position.Minus(intersectionPoint);
+        var intersectionToLight = rayFromIntersectionToLight.Normalize(out float distanceFromIntersectionToLight);
+
+        if (TryFindNearestVisible(scene.Visibles, intersectionPoint, intersectionToLight, out _, out float d) &&
+            d < distanceFromIntersectionToLight)
+        {
+            return (_enableAmbientLight ? obj.Color.Ambient : Color.Black, true);
+        }
+
+        var illuminate = light.Illuminate(
+            obj.Color,
+            intersectionToLight,
+            surfaceNormal,
+            focalPoint.Minus(intersectionPoint).Normalize());
+        
+        return (illuminate, false);
     }
 
     private static bool TryFindNearestVisible(IEnumerable<IVisible> visibles, Vector3 origin, Vector3 ray, out IVisible nearestVisible, out float nearestDistance)
@@ -102,22 +118,6 @@ public class Renderer
             {
                 nearestDistance = sphereDistance;
                 nearestVisible = visible;
-            }
-        }
-
-    
-        return nearestDistance < float.MaxValue;
-    }
-
-    private static bool TryRangeNearestVisible(IEnumerable<IVisible> visibles, Vector3 origin, Vector3 ray, out float nearestDistance)
-    {
-        nearestDistance = float.MaxValue;
-    
-        foreach (var visible in visibles)
-        {
-            if (visible.TryIntersect(ray, origin, out var sphereDistance) && sphereDistance < nearestDistance)
-            {
-                nearestDistance = sphereDistance;
             }
         }
 
