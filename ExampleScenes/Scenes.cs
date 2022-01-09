@@ -3,7 +3,7 @@ using RtxOn.Arrangement;
 using RtxOn.Materials;
 using RtxOn.Viewport;
 
-namespace ConsoleScene;
+namespace ExampleScenes;
 
 public static class Scenes
 {

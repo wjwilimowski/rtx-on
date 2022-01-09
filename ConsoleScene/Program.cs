@@ -2,12 +2,11 @@
 
 using System.Diagnostics;
 using System.Drawing;
-using ConsoleScene;
 using RtxOn.Algebra;
 using RtxOn.Rendering;
 using RtxOn.Viewport;
 
-var (scene, camera) = Scenes.Example1();
+var (scene, camera) = ExampleScenes.Scenes.Example1();
 var initialCameraDirection = camera.Direction.Clone();
 var initialScreenMid = camera.ScreenMid.Clone();
 var center = (scene.Spheres[0].Center + scene.Spheres[1].Center + scene.Spheres[2].Center) / 3f;
