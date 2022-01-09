@@ -101,4 +101,9 @@ public readonly struct Vector3
     {
         return X * other.X + Y * other.Y + Z * other.Z;
     }
+
+    public Vector3 Clone()
+    {
+        return new Vector3(X, Y, Z);
+    }
 }

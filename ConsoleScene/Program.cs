@@ -8,8 +8,8 @@ using RtxOn.Rendering;
 using RtxOn.Viewport;
 
 var (scene, camera) = Scenes.Example1();
-var initialCameraDirection = camera.Direction;
-var initialScreenMid = camera.ScreenMid;
+var initialCameraDirection = camera.Direction.Clone();
+var initialScreenMid = camera.ScreenMid.Clone();
 var center = (scene.Spheres[0].Center + scene.Spheres[1].Center + scene.Spheres[2].Center) / 3f;
         
 const int width = 320;
