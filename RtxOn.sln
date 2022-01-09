@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RtxOn", "RtxOn\RtxOn.csproj", "{1962795C-E11B-415A-BAAD-6A3019F61039}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleScene", "ConsoleScene\ConsoleScene.csproj", "{FE53D0B4-F0E5-402E-8D5B-DE3A6C425DD2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{4D4F960D-3646-4830-B517-0E7FAE98A3E5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{1962795C-E11B-415A-BAAD-6A3019F61039}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1962795C-E11B-415A-BAAD-6A3019F61039}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1962795C-E11B-415A-BAAD-6A3019F61039}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE53D0B4-F0E5-402E-8D5B-DE3A6C425DD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE53D0B4-F0E5-402E-8D5B-DE3A6C425DD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE53D0B4-F0E5-402E-8D5B-DE3A6C425DD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE53D0B4-F0E5-402E-8D5B-DE3A6C425DD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D4F960D-3646-4830-B517-0E7FAE98A3E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D4F960D-3646-4830-B517-0E7FAE98A3E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D4F960D-3646-4830-B517-0E7FAE98A3E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D4F960D-3646-4830-B517-0E7FAE98A3E5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

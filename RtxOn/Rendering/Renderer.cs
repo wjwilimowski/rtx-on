@@ -1,7 +1,10 @@
 ﻿using System.Collections.Concurrent;
+using System.Numerics;
 using RtxOn.Algebra;
 using RtxOn.Arrangement;
 using RtxOn.Materials;
+using RtxOn.Viewport;
+using Vector3 = RtxOn.Algebra.Vector3;
 
 namespace RtxOn.Rendering;
 
@@ -17,20 +20,21 @@ public class Renderer
         _enableAmbientLight = enableAmbientLight;
     }
     
-    public IEnumerable<RenderedPixel> Render(Scene scene)
+    public IEnumerable<RenderedPixel> Render(Scene scene, View view)
     {
-        foreach ((Vector3 pixelDirection, int ix, int iy) in scene.View.Pixels())
+        foreach ((Vector3 pixelDirection, int ix, int iy) in view.Pixels())
         {
-            yield return RenderPixel(scene, pixelDirection, ix, iy);
+            yield return RenderPixel(scene, view.Camera.FocalPoint, pixelDirection, ix, iy);
         }
     }
     
-    public IEnumerable<RenderedPixel> RenderParallel(Scene scene)
+    public IEnumerable<RenderedPixel> RenderParallel(Scene scene, View view)
     {
         var result = new ConcurrentBag<RenderedPixel>();
-        Parallel.ForEach(scene.View.Pixels(), cameraPixel =>
+        Parallel.ForEach(view.Pixels(), cameraPixel =>
         {
-            var pixel = RenderPixel(scene, cameraPixel.direction, cameraPixel.ix, cameraPixel.iy);
+            var (pixelDirection, ix, iy) = cameraPixel;
+            var pixel = RenderPixel(scene, view.Camera.FocalPoint, pixelDirection, ix, iy);
 
             result.Add(pixel);
         });
@@ -38,9 +42,9 @@ public class Renderer
         return result.ToArray();
     }
 
-    private RenderedPixel RenderPixel(Scene scene, Vector3 direction, int ix, int iy)
+    private RenderedPixel RenderPixel(Scene scene, Vector3 focalPoint, Vector3 direction, int ix, int iy)
     {
-        var origin = scene.View.Camera.FocalPoint;
+        var origin = focalPoint;
         var reflection = 1f;
         ObjColor illumination = ObjColor.Black;
 
@@ -75,7 +79,7 @@ public class Renderer
                 scene.Light.Color,
                 intersectionToLight,
                 surfaceNormal,
-                scene.View.Camera.FocalPoint.Minus(intersectionPoint).Normalize()) * reflection;
+                focalPoint.Minus(intersectionPoint).Normalize()) * reflection;
 
             reflection *= obj.Color.Reflection;
             origin = intersectionPoint;
@@ -88,14 +92,14 @@ public class Renderer
         return pixel;
     }
 
-    private static bool TryFindNearestSphere(Sphere[] spheres, Vector3 camera, Vector3 ray, out Sphere nearestSphere, out float nearestDistance)
+    private static bool TryFindNearestSphere(Sphere[] spheres, Vector3 origin, Vector3 ray, out Sphere nearestSphere, out float nearestDistance)
     {
         nearestDistance = float.MaxValue;
         nearestSphere = default;
     
         foreach (var sphere in spheres)
         {
-            if (sphere.TryIntersect(ray, camera, out var sphereDistance) && sphereDistance < nearestDistance)
+            if (sphere.TryIntersect(ray, origin, out var sphereDistance) && sphereDistance < nearestDistance)
             {
                 nearestDistance = sphereDistance;
                 nearestSphere = sphere;
