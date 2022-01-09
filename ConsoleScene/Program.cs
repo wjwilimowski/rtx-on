@@ -20,9 +20,9 @@ const int nReflections = 6;
 
 var renderer = new Renderer(nReflections, true);
 
-StaticScene();
+StaticScene("result.png");
 
-void StaticScene()
+void StaticScene(string filename)
 {
     var rendered = renderer.RenderParallel(scene, view);
     using (var bitmap = new Bitmap(view.WidthPx, view.HeightPx))
@@ -32,13 +32,13 @@ void StaticScene()
             bitmap.SetPixel(renderedPixel.X, renderedPixel.Y, Color.FromArgb((int)(255 * renderedPixel.Color.R), (int)(255 * renderedPixel.Color.G), (int)(255 * renderedPixel.Color.B)));
         }
         
-        bitmap.Save("result.png");
+        bitmap.Save(filename);
     }
 }
 
-void AnimatedScene()
+void AnimatedScene(string filename)
 {
-    using (var gif = AnimatedGif.AnimatedGif.Create("result.gif", 33))
+    using (var gif = AnimatedGif.AnimatedGif.Create(filename, 33))
     {
         const int maxFrame = 220;
         string pad = new string('0', maxFrame.ToString().Length);

@@ -67,7 +67,7 @@ public class Renderer
             {
                 if (_enableAmbientLight)
                 {
-                    illumination += obj.Color.Ambient;
+                    illumination += obj.Color.Ambient * reflection;
                 }
 
                 break;
