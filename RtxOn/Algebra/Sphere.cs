@@ -2,11 +2,11 @@
 
 namespace RtxOn.Algebra;
 
-public readonly struct Sphere
+public class Sphere : IVisible
 {
     public readonly Vector3 Center;
     public readonly float Radius;
-    public readonly BlinnPhong Color;
+    public BlinnPhong Color { get; }
 
     public Sphere(float x, float y, float z, float r, BlinnPhong color)
     {
@@ -37,5 +37,10 @@ public readonly struct Sphere
 
         distance = default;
         return false;
+    }
+    
+    public Vector3 GetCollisionNormal(Vector3 intersectionPoint)
+    {
+        return intersectionPoint.Minus(Center).Normalize();
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Numerics;
 using RtxOn.Algebra;
 using RtxOn.Arrangement;
 using RtxOn.Materials;
@@ -50,20 +49,20 @@ public class Renderer
 
         for (int i = 0; i < _nReflections; i++)
         {
-            if (!TryFindNearestSphere(scene.Spheres, origin, direction, out Sphere obj, out float distance))
+            if (!TryFindNearestVisible(scene.Visibles, origin, direction, out IVisible obj, out float distance))
             {
                 break;
             }
 
             var rawIntersectionPoint = origin + direction * distance;
-            var surfaceNormal = rawIntersectionPoint.Minus(obj.Center).Normalize();
+            var surfaceNormal = obj.GetCollisionNormal(rawIntersectionPoint);
             var intersectionPoint = rawIntersectionPoint + surfaceNormal * Epsilon;
 
             var rayFromIntersectionToLight = scene.Light.Position.Minus(intersectionPoint);
             var distanceFromIntersectionToLight = rayFromIntersectionToLight.Norm();
             var intersectionToLight = rayFromIntersectionToLight / distanceFromIntersectionToLight;
 
-            if (TryFindNearestSphere(scene.Spheres, intersectionPoint, intersectionToLight, out _, out float d) &&
+            if (TryRangeNearestVisible(scene.Visibles, intersectionPoint, intersectionToLight, out float d) &&
                 d < distanceFromIntersectionToLight)
             {
                 if (_enableAmbientLight)
@@ -92,17 +91,33 @@ public class Renderer
         return pixel;
     }
 
-    private static bool TryFindNearestSphere(Sphere[] spheres, Vector3 origin, Vector3 ray, out Sphere nearestSphere, out float nearestDistance)
+    private static bool TryFindNearestVisible(IEnumerable<IVisible> visibles, Vector3 origin, Vector3 ray, out IVisible nearestVisible, out float nearestDistance)
     {
         nearestDistance = float.MaxValue;
-        nearestSphere = default;
+        nearestVisible = null;
     
-        foreach (var sphere in spheres)
+        foreach (var visible in visibles)
         {
-            if (sphere.TryIntersect(ray, origin, out var sphereDistance) && sphereDistance < nearestDistance)
+            if (visible.TryIntersect(ray, origin, out var sphereDistance) && sphereDistance < nearestDistance)
             {
                 nearestDistance = sphereDistance;
-                nearestSphere = sphere;
+                nearestVisible = visible;
+            }
+        }
+
+    
+        return nearestDistance < float.MaxValue;
+    }
+
+    private static bool TryRangeNearestVisible(IEnumerable<IVisible> visibles, Vector3 origin, Vector3 ray, out float nearestDistance)
+    {
+        nearestDistance = float.MaxValue;
+    
+        foreach (var visible in visibles)
+        {
+            if (visible.TryIntersect(ray, origin, out var sphereDistance) && sphereDistance < nearestDistance)
+            {
+                nearestDistance = sphereDistance;
             }
         }
 

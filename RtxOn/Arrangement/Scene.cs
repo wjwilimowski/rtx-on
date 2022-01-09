@@ -5,12 +5,12 @@ namespace RtxOn.Arrangement;
 
 public class Scene
 {
-    public Scene(Sphere[] spheres, Light light)
+    public Scene(IVisible[] visibles, Light light)
     {
-        Spheres = spheres;
+        Visibles = visibles;
         Light = light;
     }
 
-    public Sphere[] Spheres { get; }
+    public IVisible[] Visibles { get; }
     public Light Light { get; }
 }

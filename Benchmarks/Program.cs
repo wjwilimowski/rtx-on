@@ -8,7 +8,29 @@ using RtxOn.Arrangement;
 using RtxOn.Rendering;
 using RtxOn.Viewport;
 
-var summary = BenchmarkRunner.Run<RenderVsRenderParallel>();
+var summary = BenchmarkRunner.Run<Simple>();
+
+public class Simple
+{
+    private const int NReflections = 6;
+    private readonly Renderer _renderer;
+
+    private readonly Scene _scene;
+    private readonly View _view;
+
+    private readonly Consumer _consumer = new Consumer();
+
+    public Simple()
+    {
+        (_scene, var camera) = Scenes.Example1();
+
+        _view = new View(camera, 320, 200);
+        _renderer = new Renderer(NReflections, true);
+    }
+
+    [Benchmark]
+    public void Render() => _renderer.Render(_scene, _view).Consume(_consumer);
+}
 
 public class RenderVsRenderParallel
 {
