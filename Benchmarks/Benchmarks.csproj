@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ExampleScenes\ExampleScenes.csproj" />
       <ProjectReference Include="..\RtxOn\RtxOn.csproj" />
     </ItemGroup>
 

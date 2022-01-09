@@ -32,4 +32,6 @@ public class View
             }
         }
     }
+
+    public override string ToString() => $"{WidthPx}x{HeightPx} - {Camera}";
 }
