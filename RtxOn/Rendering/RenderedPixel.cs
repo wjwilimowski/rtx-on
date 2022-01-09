@@ -6,9 +6,9 @@ public readonly struct RenderedPixel
 {
     public readonly int X;
     public readonly int Y;
-    public readonly ObjColor Color;
+    public readonly Color Color;
 
-    public RenderedPixel(int x, int y, ObjColor color)
+    public RenderedPixel(int x, int y, Color color)
     {
         X = x;
         Y = y;

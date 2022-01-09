@@ -4,13 +4,13 @@ namespace RtxOn.Materials;
 
 public readonly struct BlinnPhong
 {
-    public readonly ObjColor Ambient;
-    public readonly ObjColor Diffuse;
-    public readonly ObjColor Specular;
+    public readonly Color Ambient;
+    public readonly Color Diffuse;
+    public readonly Color Specular;
     public readonly float Shininess;
     public readonly float Reflection;
     
-    public static ObjColor Illuminate(
+    public static Color Illuminate(
         BlinnPhong obj,
         BlinnPhong light,
         Vector3 intersectionToLight,
@@ -29,7 +29,7 @@ public readonly struct BlinnPhong
         return color;
     }
 
-    public BlinnPhong(ObjColor ambient, ObjColor diffuse, ObjColor specular, float shininess, float reflection)
+    public BlinnPhong(Color ambient, Color diffuse, Color specular, float shininess, float reflection)
     {
         Ambient = ambient;
         Diffuse = diffuse;
@@ -39,51 +39,51 @@ public readonly struct BlinnPhong
     }
 
     public static BlinnPhong Bright => new(
-        ObjColor.White, 
-        ObjColor.White, 
-        ObjColor.White, 
+        Color.White, 
+        Color.White, 
+        Color.White, 
         100f,
         .5f);
     
     public static BlinnPhong Red => new(
-        new ObjColor(.1f, 0, 0), 
-        ObjColor.Red, 
-        ObjColor.White, 
+        new Color(.1f, 0, 0), 
+        Color.Red, 
+        Color.White, 
         100f,
         .5f);
     
     public static BlinnPhong Green => new(
-        new ObjColor(0f, .1f, 0), 
-        ObjColor.Green, 
-        ObjColor.White, 
+        new Color(0f, .1f, 0), 
+        Color.Green, 
+        Color.White, 
         100f,
         .3f);
     
     public static BlinnPhong Blue => new(
-        new ObjColor(0f, 0f, .1f), 
-        ObjColor.Blue, 
-        ObjColor.White, 
+        new Color(0f, 0f, .1f), 
+        Color.Blue, 
+        Color.White, 
         100f,
         .5f);
     
     public static BlinnPhong Gray => new(
-        new ObjColor(.1f, .1f, .1f), 
-        new ObjColor(.6f, .6f, .6f), 
-        ObjColor.White, 
+        new Color(.1f, .1f, .1f), 
+        new Color(.6f, .6f, .6f), 
+        Color.White, 
         100f,
         .9f);
     
     public static BlinnPhong DarkGrayish => new(
-        new ObjColor(.05f, .05f, .05f), 
-        new ObjColor(.4f, .3f, .3f), 
-        new ObjColor(1f, .8f, .8f), 
+        new Color(.05f, .05f, .05f), 
+        new Color(.4f, .3f, .3f), 
+        new Color(1f, .8f, .8f), 
         100f,
         .9f);
     
     public static BlinnPhong Purple => new(
-        new ObjColor(.1f, 0f, .1f), 
-        ObjColor.Purple, 
-        ObjColor.White, 
+        new Color(.1f, 0f, .1f), 
+        Color.Purple, 
+        Color.White, 
         100f,
         .3f);
 }

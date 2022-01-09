@@ -45,7 +45,7 @@ public class Renderer
     {
         var origin = focalPoint;
         var reflection = 1f;
-        ObjColor illumination = ObjColor.Black;
+        Color illumination = Color.Black;
 
         for (int i = 0; i < _nReflections; i++)
         {
