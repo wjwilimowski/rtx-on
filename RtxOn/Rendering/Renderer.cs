@@ -45,34 +45,36 @@ public class Renderer
     {
         var origin = eye;
         var reflection = 1f;
-        Color illumination = Color.Black;
-
+        var illumination = Color.Black;
+        
         for (int i = 0; i < _nReflections; i++)
         {
             if (!TryFindNearestVisible(scene.Visibles, origin, direction, out IVisible obj, out float distance))
             {
                 break;
             }
-
+            
             var rawIntersectionPoint = origin + direction * distance;
             var normal = obj.GetCollisionNormal(rawIntersectionPoint);
             var intersection = rawIntersectionPoint + normal * Epsilon;
 
-            var light = scene.Light;
-
-            var (illuminate, isShadowed) = Illuminate(light, scene, eye, obj, intersection, normal);
-            illumination += illuminate * reflection;
-
-            if (isShadowed)
+            var isShadowedFromAll = true;
+            foreach (var light in scene.Lights)
             {
-                break;
+                var (illuminate, isShadowedFromCurrentLight) = Illuminate(light, scene, eye, obj, intersection, normal);
+                illumination += illuminate * reflection;
+
+                isShadowedFromAll = isShadowedFromAll && isShadowedFromCurrentLight;
             }
 
-
+            if (isShadowedFromAll)
+                break;
+            
             reflection *= obj.Color.Reflection;
             origin = intersection;
             direction = direction.Reflected(normal);
         }
+        
 
         illumination = illumination.Clamp();
 

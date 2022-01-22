@@ -2,7 +2,7 @@
 
 namespace RtxOn.Materials;
 
-public readonly struct Light
+public class Light
 {
     public readonly Vector3 Position;
     public readonly BlinnPhong Color;

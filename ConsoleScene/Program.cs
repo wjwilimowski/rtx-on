@@ -16,9 +16,9 @@ const int width = 1280;
 const int height = 800;
 var view = new View(camera, width, height);
 
-const int nReflections = 6;
+const int nReflections = 7;
 
-var renderer = new Renderer(nReflections, true);
+var renderer = new Renderer(nReflections, false);
 
 StaticScene("result.png");
 

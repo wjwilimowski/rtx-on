@@ -9,7 +9,13 @@ public static class Scenes
 {
     public static (Scene scene, Camera camera) Example1()
     {
-        var light = new Light(new Vector3(5, 5, 5), BlinnPhong.Bright);
+        var light1 = new Light(new Vector3(5, 5, 5), BlinnPhong.Bright);
+        var light2 = new Light(new Vector3(-60f, 8, 2), BlinnPhong.Gray);
+        var lights = new[]
+        {
+            light1, 
+            light2
+        };
 
         var floorPlane = new Plane(new Vector3(0, -.7f, 0), new Vector3(0, 1, 0), BlinnPhong.Gray);
 
@@ -32,7 +38,7 @@ public static class Scenes
         var initialCameraDirection = (center - initialScreenMid).Normalize();
         var camera = new Camera(initialScreenMid, initialCameraDirection, focalLength);
 
-        var scene = new Scene(visibles, light);
+        var scene = new Scene(visibles, lights);
 
         return (scene, camera);
     }
