@@ -9,8 +9,6 @@ namespace RtxOn.Rendering;
 
 public class Renderer
 {
-    const float Epsilon = 0.00001f;
-
     private readonly int _nReflections;
     private readonly bool _enableAmbientLight;
     public Renderer(int nReflections, bool enableAmbientLight)
@@ -56,7 +54,7 @@ public class Renderer
             
             var rawIntersectionPoint = origin + direction * distance;
             var normal = obj.GetCollisionNormal(rawIntersectionPoint);
-            var intersection = rawIntersectionPoint + normal * Epsilon;
+            var intersection = rawIntersectionPoint + normal * Const.Epsilon;
 
             foreach (var light in scene.Lights)
             {

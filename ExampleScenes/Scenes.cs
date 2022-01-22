@@ -24,13 +24,15 @@ public static class Scenes
         var sphere1 = new Sphere(-.2f, 0, -1, .7f, BlinnPhong.Red);
         var sphere2 = new Sphere(.1f, -.3f, 0, .1f, BlinnPhong.Purple);
         var sphere3 = new Sphere(-.3f, 0, 0, .15f, BlinnPhong.Green);
+        var cylinder1 = new Cylinder(BlinnPhong.Blue, new Vector3(2, -1, -4), new Vector3(2, 2, -4), .8f);
 
         var visibles = new IVisible[]
         {
             floorPlane,
             sphere1,
             sphere2,
-            sphere3
+            sphere3,
+            cylinder1
         };
 
         var center = (sphere1.Center + sphere2.Center + sphere3.Center) / 3f;

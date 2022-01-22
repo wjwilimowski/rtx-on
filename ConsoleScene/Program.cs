@@ -12,8 +12,8 @@ var initialScreenMid = camera.ScreenMid.Clone();
 var sceneSpheres = scene.Visibles.OfType<Sphere>().ToList();
 var center = (sceneSpheres[0].Center + sceneSpheres[1].Center + sceneSpheres[2].Center) / 3f;
         
-const int width = 640;
-const int height = 400;
+const int width = 1280;
+const int height = 800;
 var view = new View(camera, width, height);
 
 const int nReflections = 7;

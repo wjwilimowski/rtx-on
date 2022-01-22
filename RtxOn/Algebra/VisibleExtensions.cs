@@ -9,9 +9,9 @@ public static class VisibleExtensions
     
         foreach (var visible in visibles)
         {
-            if (visible.TryIntersect(ray, origin, out var sphereDistance) && sphereDistance < nearestDistance)
+            if (visible.TryIntersect(ray, origin, out var objDistance) && objDistance < nearestDistance)
             {
-                nearestDistance = sphereDistance;
+                nearestDistance = objDistance;
                 nearestVisible = visible;
             }
         }
