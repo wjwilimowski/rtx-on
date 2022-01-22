@@ -35,7 +35,7 @@ public static class Scenes
 
         var center = (sphere1.Center + sphere2.Center + sphere3.Center) / 3f;
 
-        var initialScreenMid = center + new Vector3(0, 0, 2f);
+        var initialScreenMid = center + new Vector3(0, 0, 1f);
         var focalLength = 1f;
         var initialCameraDirection = (center - initialScreenMid).Normalize();
         var camera = new Camera(initialScreenMid, initialCameraDirection, focalLength);

@@ -9,22 +9,29 @@ public class PointLight : Light
     {
     }
     
-    public override float GetIntensityAt(Vector3 intersectionPoint, Scene scene)
+    protected override float GetIntensityAt(Vector3 intersectionPoint, Scene scene)
     {
         return IsShadowed(Position, intersectionPoint, scene) ? 0f : Intensity;
     }
 
-    public override Color Illuminate(BlinnPhong obj, Vector3 point, Vector3 objSurfaceNormal, Vector3 intersectionToCamera, Scene _)
+    public override Color Illuminate(BlinnPhong obj, Vector3 point, Vector3 objSurfaceNormal, Vector3 intersectionToCamera, Scene scene)
     {
-        var pointToLight = Position - point;
-        var lv = pointToLight + intersectionToCamera;
-        var dotLvNormal = objSurfaceNormal.Dot(lv.Normalize());
-        var rawSpecularCoefficient = (float)Math.Pow(dotLvNormal, obj.Shininess / 4f);
-        var specularCoefficient = float.IsNaN(rawSpecularCoefficient) ? 0f : rawSpecularCoefficient;
+        var ambient = obj.Ambient * Color.Ambient;
         
-        var color = obj.Ambient * Color.Ambient +
-                    obj.Diffuse * Color.Diffuse * pointToLight.Dot(objSurfaceNormal) * Intensity +
-                    obj.Specular * Color.Specular * specularCoefficient * Intensity;
+        var intensity = GetIntensityAt(point, scene);
+        if (intensity == 0)
+            return ambient;
+
+        var (diffuse, specular) = GetDiffuseSpecularCoefficients(
+            Position,
+            point,
+            intersectionToCamera,
+            objSurfaceNormal,
+            obj.EffectiveShininess);
+        
+        var color = ambient +
+                    obj.Diffuse * Color.Diffuse * diffuse * intensity +
+                    obj.Specular * Color.Specular * specular * intensity;
 
         return color;
     }
@@ -46,7 +53,7 @@ public class AreaLight : Light
         VSteps = vSteps;
         NCells = USteps * VSteps;
     }
-
+    
     public override Color Illuminate(BlinnPhong obj, Vector3 point, Vector3 objSurfaceNormal, Vector3 intersectionToCamera, Scene scene)
     {
         var totalDiffuse = 0f;
@@ -54,14 +61,16 @@ public class AreaLight : Light
 
         foreach (var lightPoint in EnumeratePoints())
         {
-            var intersectionToLight = lightPoint - point;
-            var lv = intersectionToLight + intersectionToCamera;
-            var dotLvNormal = objSurfaceNormal.Dot(lv.Normalize());
-            var rawSpecularCoefficient = (float)Math.Pow(dotLvNormal, obj.Shininess / 4f);
-
+            var (diffuse, specular) = GetDiffuseSpecularCoefficients(
+                lightPoint,
+                point,
+                intersectionToCamera,
+                objSurfaceNormal,
+                obj.EffectiveShininess);
+            
             var intensity = GetIntensityAt(point, scene);
-            totalDiffuse += intensity * intersectionToLight.Dot(objSurfaceNormal);
-            totalSpecular += intensity * (float.IsNaN(rawSpecularCoefficient) ? 0f : rawSpecularCoefficient);
+            totalDiffuse += intensity * diffuse;
+            totalSpecular += intensity * specular;
         }
 
         var color = obj.Ambient * Color.Ambient +
@@ -71,7 +80,7 @@ public class AreaLight : Light
         return color;
     }
 
-    public override float GetIntensityAt(Vector3 intersectionPoint, Scene scene)
+    protected override float GetIntensityAt(Vector3 intersectionPoint, Scene scene)
     {
         return EnumeratePoints().Select(p => IsShadowed(p, intersectionPoint, scene) ? 0f : Intensity).Average();
     }
@@ -106,14 +115,27 @@ public abstract class Light
 
     public abstract Color Illuminate(BlinnPhong obj, Vector3 point, Vector3 objSurfaceNormal, Vector3 intersectionToCamera, Scene scene);
 
-    public abstract float GetIntensityAt(Vector3 intersectionPoint, Scene scene);
+    protected abstract float GetIntensityAt(Vector3 intersectionPoint, Scene scene);
 
-    public static bool IsShadowed(Vector3 lightPoint, Vector3 intersectionPoint, Scene scene)
+    protected static bool IsShadowed(Vector3 lightPoint, Vector3 intersectionPoint, Scene scene)
     {
         var rayFromIntersectionToLight = lightPoint.Minus(intersectionPoint);
         var intersectionToLight = rayFromIntersectionToLight.Normalize(out float distanceFromIntersectionToLight);
         
         return scene.Visibles.TryFindNearest(intersectionPoint, intersectionToLight, out _, out float d) &&
                d < distanceFromIntersectionToLight;
+    }
+
+    public static (float diffuse, float specular) GetDiffuseSpecularCoefficients(Vector3 lightPoint, Vector3 point, Vector3 intersectionToCamera, Vector3 objSurfaceNormal, float effectiveShininess)
+    {
+        var intersectionToLight = (lightPoint - point).Normalize();
+        var lv = intersectionToLight + intersectionToCamera;
+        var dotLvNormal = objSurfaceNormal.Dot(lv.Normalize());
+        var rawSpecularCoefficient = (float)Math.Pow(dotLvNormal, effectiveShininess);
+
+        var diffuse = intersectionToLight.Dot(objSurfaceNormal);
+        var specular = (float.IsNaN(rawSpecularCoefficient) ? 0f : rawSpecularCoefficient);
+
+        return (diffuse, specular);
     }
 }

@@ -5,7 +5,7 @@ public readonly struct BlinnPhong
     public readonly Color Ambient;
     public readonly Color Diffuse;
     public readonly Color Specular;
-    public readonly float Shininess;
+    public readonly float EffectiveShininess;
     public readonly float Reflection;
 
     public BlinnPhong(Color ambient, Color diffuse, Color specular, float shininess, float reflection)
@@ -13,7 +13,7 @@ public readonly struct BlinnPhong
         Ambient = ambient;
         Diffuse = diffuse;
         Specular = specular;
-        Shininess = shininess;
+        EffectiveShininess = shininess / 4f;
         Reflection = reflection;
     }
 
