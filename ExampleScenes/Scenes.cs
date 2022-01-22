@@ -9,12 +9,14 @@ public static class Scenes
 {
     public static (Scene scene, Camera camera) Example1()
     {
-        var light1 = new Light(new Vector3(5, 5, 5), BlinnPhong.Bright);
-        var light2 = new Light(new Vector3(-60f, 8, 2), BlinnPhong.Gray);
-        var lights = new[]
+        var light1 = new PointLight(new Vector3(5, 5, 5), BlinnPhong.Bright, 1f);
+        var light2 = new PointLight(new Vector3(-60f, 8, 2), BlinnPhong.Bright, .3f);
+        var light3 = new AreaLight(new Vector3(5, 5, 5), BlinnPhong.Bright, 1f, new Vector3(0, 3f, 0), new Vector3(0, 3f, 1), 10, 10);
+        var lights = new Light[]
         {
-            light1, 
-            light2
+            //light1, 
+            //light2,
+            light3
         };
 
         var floorPlane = new Plane(new Vector3(0, -.7f, 0), new Vector3(0, 1, 0), BlinnPhong.Gray);

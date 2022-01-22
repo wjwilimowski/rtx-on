@@ -49,7 +49,7 @@ public class Renderer
         
         for (int i = 0; i < _nReflections; i++)
         {
-            if (!TryFindNearestVisible(scene.Visibles, origin, direction, out IVisible obj, out float distance))
+            if (!scene.Visibles.TryFindNearest(origin, direction, out IVisible obj, out float distance))
             {
                 break;
             }
@@ -58,17 +58,11 @@ public class Renderer
             var normal = obj.GetCollisionNormal(rawIntersectionPoint);
             var intersection = rawIntersectionPoint + normal * Epsilon;
 
-            var isShadowedFromAll = true;
             foreach (var light in scene.Lights)
             {
-                var (illuminate, isShadowedFromCurrentLight) = Illuminate(light, scene, eye, obj, intersection, normal);
+                var illuminate = Illuminate(light, scene, eye, obj, intersection, normal, out var intensity);
                 illumination += illuminate * reflection;
-
-                isShadowedFromAll = isShadowedFromAll && isShadowedFromCurrentLight;
             }
-
-            if (isShadowedFromAll)
-                break;
             
             reflection *= obj.Color.Reflection;
             origin = intersection;
@@ -82,48 +76,27 @@ public class Renderer
         return pixel;
     }
 
-    private (Color illuminate, bool isShadowed) Illuminate(
+    private Color Illuminate(
         Light light,
         Scene scene,
         Vector3 focalPoint,
         IVisible obj,
         Vector3 intersectionPoint,
-        Vector3 surfaceNormal)
+        Vector3 surfaceNormal,
+        out float intensity)
     {
-        
         var rayFromIntersectionToLight = light.Position.Minus(intersectionPoint);
-        var intersectionToLight = rayFromIntersectionToLight.Normalize(out float distanceFromIntersectionToLight);
+        var intersectionToLight = rayFromIntersectionToLight.Normalize(out _);
 
-        if (TryFindNearestVisible(scene.Visibles, intersectionPoint, intersectionToLight, out _, out float d) &&
-            d < distanceFromIntersectionToLight)
-        {
-            return (_enableAmbientLight ? obj.Color.Ambient : Color.Black, true);
-        }
+        intensity = light.GetIntensityAt(intersectionPoint, scene);
 
         var illuminate = light.Illuminate(
             obj.Color,
             intersectionToLight,
             surfaceNormal,
-            focalPoint.Minus(intersectionPoint).Normalize());
-        
-        return (illuminate, false);
-    }
+            focalPoint.Minus(intersectionPoint).Normalize(),
+            intensity);
 
-    private static bool TryFindNearestVisible(IEnumerable<IVisible> visibles, Vector3 origin, Vector3 ray, out IVisible nearestVisible, out float nearestDistance)
-    {
-        nearestDistance = float.MaxValue;
-        nearestVisible = null;
-    
-        foreach (var visible in visibles)
-        {
-            if (visible.TryIntersect(ray, origin, out var sphereDistance) && sphereDistance < nearestDistance)
-            {
-                nearestDistance = sphereDistance;
-                nearestVisible = visible;
-            }
-        }
-
-    
-        return nearestDistance < float.MaxValue;
+        return illuminate;
     }
 }

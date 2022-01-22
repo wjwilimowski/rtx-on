@@ -50,7 +50,7 @@ public readonly struct BlinnPhong
         new Color(.6f, .6f, .6f), 
         Color.White, 
         100f,
-        .9f);
+        .3f);
     
     public static BlinnPhong DarkGrayish => new(
         new Color(.05f, .05f, .05f), 
