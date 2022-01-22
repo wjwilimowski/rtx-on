@@ -60,7 +60,7 @@ public class Renderer
 
             foreach (var light in scene.Lights)
             {
-                var illuminate = Illuminate(light, scene, eye, obj, intersection, normal, out var intensity);
+                var illuminate = Illuminate(light, scene, eye, obj, intersection, normal);
                 illumination += illuminate * reflection;
             }
             
@@ -82,20 +82,14 @@ public class Renderer
         Vector3 focalPoint,
         IVisible obj,
         Vector3 intersectionPoint,
-        Vector3 surfaceNormal,
-        out float intensity)
+        Vector3 surfaceNormal)
     {
-        var rayFromIntersectionToLight = light.Position.Minus(intersectionPoint);
-        var intersectionToLight = rayFromIntersectionToLight.Normalize(out _);
-
-        intensity = light.GetIntensityAt(intersectionPoint, scene);
-
         var illuminate = light.Illuminate(
             obj.Color,
-            intersectionToLight,
+            intersectionPoint,
             surfaceNormal,
             focalPoint.Minus(intersectionPoint).Normalize(),
-            intensity);
+            scene);
 
         return illuminate;
     }

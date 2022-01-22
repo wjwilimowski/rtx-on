@@ -13,6 +13,21 @@ public class PointLight : Light
     {
         return IsShadowed(Position, intersectionPoint, scene) ? 0f : Intensity;
     }
+
+    public override Color Illuminate(BlinnPhong obj, Vector3 point, Vector3 objSurfaceNormal, Vector3 intersectionToCamera, Scene _)
+    {
+        var pointToLight = Position - point;
+        var lv = pointToLight + intersectionToCamera;
+        var dotLvNormal = objSurfaceNormal.Dot(lv.Normalize());
+        var rawSpecularCoefficient = (float)Math.Pow(dotLvNormal, obj.Shininess / 4f);
+        var specularCoefficient = float.IsNaN(rawSpecularCoefficient) ? 0f : rawSpecularCoefficient;
+        
+        var color = obj.Ambient * Color.Ambient +
+                    obj.Diffuse * Color.Diffuse * pointToLight.Dot(objSurfaceNormal) * Intensity +
+                    obj.Specular * Color.Specular * specularCoefficient * Intensity;
+
+        return color;
+    }
 }
 
 public class AreaLight : Light
@@ -21,13 +36,39 @@ public class AreaLight : Light
     public readonly Vector3 V;
     public readonly int USteps;
     public readonly int VSteps;
+    public readonly int NCells;
     
-    public AreaLight(Vector3 position, BlinnPhong color, float intensity, Vector3 u, Vector3 v, int uSteps, int vSteps) : base(position, color, intensity)
+    public AreaLight(Vector3 position, BlinnPhong color, float intensity, Vector3 u, Vector3 v, int uSteps, int vSteps) : base(position - u - v, color, intensity)
     {
-        U = u / uSteps;
-        V = v / vSteps;
+        U = u * 2 / uSteps;
+        V = v * 2 / vSteps;
         USteps = uSteps;
         VSteps = vSteps;
+        NCells = USteps * VSteps;
+    }
+
+    public override Color Illuminate(BlinnPhong obj, Vector3 point, Vector3 objSurfaceNormal, Vector3 intersectionToCamera, Scene scene)
+    {
+        var totalDiffuse = 0f;
+        var totalSpecular = 0f;
+
+        foreach (var lightPoint in EnumeratePoints())
+        {
+            var intersectionToLight = lightPoint - point;
+            var lv = intersectionToLight + intersectionToCamera;
+            var dotLvNormal = objSurfaceNormal.Dot(lv.Normalize());
+            var rawSpecularCoefficient = (float)Math.Pow(dotLvNormal, obj.Shininess / 4f);
+
+            var intensity = GetIntensityAt(point, scene);
+            totalDiffuse += intensity * intersectionToLight.Dot(objSurfaceNormal);
+            totalSpecular += intensity * (float.IsNaN(rawSpecularCoefficient) ? 0f : rawSpecularCoefficient);
+        }
+
+        var color = obj.Ambient * Color.Ambient +
+                    obj.Diffuse * Color.Diffuse * (totalDiffuse / NCells) +
+                    obj.Specular * Color.Specular * (totalSpecular / NCells);
+
+        return color;
     }
 
     public override float GetIntensityAt(Vector3 intersectionPoint, Scene scene)
@@ -63,24 +104,7 @@ public abstract class Light
         Intensity = intensity;
     }
 
-    public Color Illuminate(
-        BlinnPhong obj,
-        Vector3 intersectionToLight,
-        Vector3 objSurfaceNormal,
-        Vector3 intersectionToCamera,
-        float intensity)
-    {
-        var lv = intersectionToLight + intersectionToCamera;
-        var dotLvNormal = objSurfaceNormal.Dot(lv.Normalize());
-        var rawSpecularCoefficient = (float)Math.Pow(dotLvNormal, obj.Shininess / 4f);
-        var specularCoefficient = float.IsNaN(rawSpecularCoefficient) ? 0f : rawSpecularCoefficient;
-        
-        var color = obj.Ambient * Color.Ambient +
-                    obj.Diffuse * Color.Diffuse * intersectionToLight.Dot(objSurfaceNormal) * intensity +
-                    obj.Specular * Color.Specular * specularCoefficient * intensity;
-
-        return color;
-    }
+    public abstract Color Illuminate(BlinnPhong obj, Vector3 point, Vector3 objSurfaceNormal, Vector3 intersectionToCamera, Scene scene);
 
     public abstract float GetIntensityAt(Vector3 intersectionPoint, Scene scene);
 

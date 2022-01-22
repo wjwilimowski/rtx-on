@@ -11,7 +11,7 @@ public static class Scenes
     {
         var light1 = new PointLight(new Vector3(5, 5, 5), BlinnPhong.Bright, 1f);
         var light2 = new PointLight(new Vector3(-60f, 8, 2), BlinnPhong.Bright, .3f);
-        var light3 = new AreaLight(new Vector3(5, 5, 5), BlinnPhong.Bright, 1f, new Vector3(0, 3f, 0), new Vector3(0, 3f, 1), 10, 10);
+        var light3 = new AreaLight(new Vector3(5, 5, 5), BlinnPhong.Bright, 1f, new Vector3(0, 1f, 0), new Vector3(0, 0, 1f), 3, 3);
         var lights = new Light[]
         {
             //light1, 
